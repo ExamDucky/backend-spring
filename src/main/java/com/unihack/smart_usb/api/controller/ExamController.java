@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -52,7 +53,7 @@ public class ExamController {
     }
 
     @Operation(summary = "Create exam attempt", description = "Method for creating exam attempt by student's usb")
-    @PutMapping("/{id}/exam-attempt/submit")
+    @PutMapping(value = "/{id}/exam-attempt/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Boolean> submitTest(Authentication authentication,
                                               @PathVariable @NotNull Long id,
                                               @RequestParam("file") MultipartFile file,

@@ -11,6 +11,7 @@ import com.unihack.smart_usb.persistance.model.*;
 import com.unihack.smart_usb.service.implementations.*;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,6 +22,7 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ExamFacade {
 
     private final TestService testService;
@@ -143,7 +145,7 @@ public class ExamFacade {
 
         Optional<Student> studentOptional = studentService.getStudentByStudentIdentification(studentIdentification);
         if (!studentOptional.isPresent()) {
-            throw new EntityDoesNotExistException("An student with the given id does not exist.");
+            throw new EntityDoesNotExistException("A student with the given id does not exist.");
         }
 
         Student student = studentOptional.get();
@@ -165,6 +167,7 @@ public class ExamFacade {
         try {
             examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename + id.toString(), testFileType);
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
         return true;

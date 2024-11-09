@@ -158,7 +158,6 @@ public class BlobStorageTestsClient {
         BlobHttpHeaders headers = new BlobHttpHeaders();
         headers.setContentType("application/zip");
 
-
         Flux<ByteBuffer> fileFlux = Flux.just(ByteBuffer.wrap(testFile.getBytes()));
 
         BlobParallelUploadOptions options = new BlobParallelUploadOptions(fileFlux)
