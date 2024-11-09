@@ -1,7 +1,7 @@
 package com.unihack.smart_usb.facade;
 
 import com.unihack.smart_usb.api.dto.TestDTO;
-import com.unihack.smart_usb.client.BlobStorageTestsClient;
+import com.unihack.smart_usb.client.BlobStorageClient;
 import com.unihack.smart_usb.client.models.TestFileType;
 import com.unihack.smart_usb.exception.auth.EntityDoesNotExistException;
 import com.unihack.smart_usb.exception.auth.UserDoesNotOwnEntityException;
@@ -25,7 +25,7 @@ public class TestFacade {
     private final TestService testService;
     private final ProfessorService professorService;
     @Resource
-    private BlobStorageTestsClient testBlobStorageClient;
+    private BlobStorageClient testBlobStorageClient;
 
     //TODO Uraditi validaciju
     public TestDTO getTestFiles(Long testId) {

@@ -37,7 +37,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class BlobStorageTestsClient {
+public class BlobStorageClient {
     private int sasDurationHours;
 
     private static final String BLOB_STORAGE_ENDPOINT_TEMPLATE = "https://%s.blob.core.windows.net/";
@@ -48,10 +48,10 @@ public class BlobStorageTestsClient {
 
     private final BlobContainerAsyncClient blobContainerAsyncClient;
 
-    public BlobStorageTestsClient(@Value("${smart-usb.storage.account.name}") String storageAccountName,
-                                  @Value("${smart-usb.storage.account.key}") String storageAccountKey,
-                                  @Value("${smart-usb.storage.container.test.name}") String blobContainerUrl,
-                                  @Value("${smart-usb.storage.account.sas.duration.hours}") int sasDurationHours
+    public BlobStorageClient(@Value("${smart-usb.storage.account.name}") String storageAccountName,
+                             @Value("${smart-usb.storage.account.key}") String storageAccountKey,
+                             @Value("${smart-usb.storage.container.test.name}") String blobContainerUrl,
+                             @Value("${smart-usb.storage.account.sas.duration.hours}") int sasDurationHours
     ) {
         StorageSharedKeyCredential blobStorageCredential = new StorageSharedKeyCredential(storageAccountName, storageAccountKey);
         this.blobContainerSasPermission = new BlobContainerSasPermission()

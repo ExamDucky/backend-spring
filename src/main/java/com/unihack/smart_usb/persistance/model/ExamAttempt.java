@@ -40,6 +40,9 @@ public class ExamAttempt {
     @Column(nullable = false)
     private String macAddress;
 
+    @Column(name = "submission_id")
+    private String submissionId;
+
     @OneToMany(mappedBy = "examAttempt")
     List<ExamAttemptDetail> examAttemptDetails;
 

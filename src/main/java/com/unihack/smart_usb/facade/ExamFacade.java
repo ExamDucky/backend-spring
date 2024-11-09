@@ -3,8 +3,10 @@ package com.unihack.smart_usb.facade;
 import com.unihack.smart_usb.api.dto.ExamAttemptDTO;
 import com.unihack.smart_usb.api.dto.ExamDTO;
 import com.unihack.smart_usb.api.dto.TestDTO;
-import com.unihack.smart_usb.client.BlobStorageTestsClient;
+import com.unihack.smart_usb.client.AIClient;
+import com.unihack.smart_usb.client.BlobStorageClient;
 import com.unihack.smart_usb.client.models.TestFileType;
+import com.unihack.smart_usb.client.models.UploadSubmissionResponse;
 import com.unihack.smart_usb.exception.auth.EntityDoesNotExistException;
 import com.unihack.smart_usb.exception.auth.UserDoesNotOwnEntityException;
 import com.unihack.smart_usb.persistance.model.*;
@@ -18,8 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.ZonedDateTime;
 import java.util.Optional;
 
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -30,9 +30,10 @@ public class ExamFacade {
     private final StudentService studentService;
     private final ExamService examService;
     private final ExamAttemptService examAttemptService;
+    private final AIClient aiClient;
 
     @Resource
-    private BlobStorageTestsClient examBlobStorageClient;
+    private BlobStorageClient examBlobStorageClient;
 
     public ExamDTO createExam(ExamDTO examDTO, Long professorId) {
         Optional<Professor> professorOptional = professorService.getProfessorById(professorId);
@@ -157,6 +158,8 @@ public class ExamFacade {
                 try {
                     if (examAttempt.getSubmittedFileName() == null) {
                         examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename + examAttemptId.toString(), testFileType);
+                        UploadSubmissionResponse uploadSubmissionResponse = aiClient.uploadFileToAi(file);
+                        examAttempt.setSubmissionId(uploadSubmissionResponse.getSubmissionId());
                         examAttempt.setSubmittedFileName(filename);
                         examAttemptService.updateExamAttempt(examAttempt);
                         return true;
@@ -176,6 +179,8 @@ public class ExamFacade {
                 try {
                     if (examAttempt.getSubmittedFileName() == null) {
                         examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename, testFileType);
+                        UploadSubmissionResponse uploadSubmissionResponse = aiClient.uploadFileToAi(file);
+                        examAttempt.setSubmissionId(uploadSubmissionResponse.getSubmissionId());
                         examAttemptService.updateExamAttempt(examAttempt);
                         return true;
                     } else {
