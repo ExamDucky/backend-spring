@@ -60,8 +60,12 @@ public class AuthenticationFacade {
         var user = professorService.getProfessorByEmail(request.getEmail())
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         var jwtToken = jwtService.generateToken(user);
+        Professor professor = user;
         return LoginResponseDTO.builder()
                 .token(jwtToken)
+                .email(professor.getEmail())
+                .firstName(professor.getFirstName())
+                .lastName(professor.getLastName())
                 .build();
     }
 
