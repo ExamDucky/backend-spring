@@ -46,8 +46,9 @@ public class ExamController {
 
     @Operation(summary = "Create exam attempt", description = "Method for creating exam attempt by student's usb")
     @PostMapping("/{id}/exam-attempt/create")
-    public ResponseEntity<ExamAttemptDTO> createExamAttempt(Authentication authentication, @PathVariable @NotNull Long id, @RequestBody ExamAttemptDTO examAttemptDTO) {
-        Professor professor = (Professor) authentication.getPrincipal();
+    public ResponseEntity<ExamAttemptDTO> createExamAttempt(Authentication authentication,
+                                                            @PathVariable @NotNull Long id,
+                                                            @RequestBody ExamAttemptDTO examAttemptDTO) {
         log.info("Creating exam attempt for exam with id: " + id);
         return ResponseEntity.ok(examFacade.createExamAttempt(id, examAttemptDTO));
     }
@@ -61,7 +62,6 @@ public class ExamController {
                                               @RequestParam String studentIdentification,
                                               @RequestParam Long examAttemptId,
                                               @NotNull @RequestParam("testFileType") TestFileType testFileType) {
-        Professor professor = (Professor) authentication.getPrincipal();
         log.info("Creating exam attempt for exam with id: " + id);
         return ResponseEntity.ok(examFacade.submitExam(id, examAttemptId, file, filename, studentIdentification, testFileType));
     }

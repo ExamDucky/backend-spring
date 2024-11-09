@@ -18,6 +18,7 @@ public class StudentService {
     @NotNull IStudentRepository iStudentRepository;
 
     public Optional<Student> getStudentByStudentIdentification(String studentId) {
-        return iStudentRepository.findByStudentId(studentId);
+        Optional<Student> student = iStudentRepository.findByStudentId(studentId);
+        return student;
     }
 }

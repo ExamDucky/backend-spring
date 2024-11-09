@@ -29,4 +29,8 @@ public class ExamAttemptService {
     public Optional<ExamAttempt> getExamAttemptByExamIdAndStudentId(Long examId, Long studentId) {
         return iExamAttemptRepository.findByExamIdAndStudentId(examId, studentId);
     }
+
+    public void updateExamAttempt(ExamAttempt examAttempt) {
+        iExamAttemptRepository.save(examAttempt);
+    }
 }

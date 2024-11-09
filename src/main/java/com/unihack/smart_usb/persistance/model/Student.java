@@ -39,7 +39,6 @@ public class Student {
                 ", studentId='" + studentId + '\'' +
                 ", firstName='" + firstName + '\'' +
                 ", lastName='" + lastName + '\'' +
-                ", exams=" + exams +
                 '}';
     }
 }

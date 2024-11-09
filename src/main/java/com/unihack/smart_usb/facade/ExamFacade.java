@@ -141,8 +141,6 @@ public class ExamFacade {
             throw new EntityDoesNotExistException("An exam with the given id does not exist.");
         }
 
-        Exam exam = examOptional.get();
-
         Optional<Student> studentOptional = studentService.getStudentByStudentIdentification(studentIdentification);
         if (!studentOptional.isPresent()) {
             throw new EntityDoesNotExistException("A student with the given id does not exist.");
@@ -150,27 +148,47 @@ public class ExamFacade {
 
         Student student = studentOptional.get();
 
-        ExamAttempt examAttempt = new ExamAttempt();
+        ExamAttempt examAttempt;
 
         if (examAttemptId != null) {
             Optional<ExamAttempt> examAttemptOptional = examAttemptService.getExamAttemptById(examAttemptId);
-            if (!examAttemptOptional.isPresent()) {
+            if (examAttemptOptional.isPresent()) {
                 examAttempt = examAttemptOptional.get();
+                try {
+                    if (examAttempt.getSubmittedFileName() == null) {
+                        examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename + examAttemptId.toString(), testFileType);
+                        examAttempt.setSubmittedFileName(filename);
+                        examAttemptService.updateExamAttempt(examAttempt);
+                        return true;
+                    } else {
+                        throw new EntityDoesNotExistException("The student already submitted the test.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
+
         } else {
             Optional<ExamAttempt> examAttemptOptional2 = examAttemptService.getExamAttemptByExamIdAndStudentId(examId, student.getId());
-            if (!examAttemptOptional2.isPresent()) {
+            if (examAttemptOptional2.isPresent()) {
                 examAttempt = examAttemptOptional2.get();
+                try {
+                    if (examAttempt.getSubmittedFileName() == null) {
+                        examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename, testFileType);
+                        examAttemptService.updateExamAttempt(examAttempt);
+                        return true;
+                    } else {
+                        throw new EntityDoesNotExistException("The student already submitted the test.");
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    return false;
+                }
             }
         }
 
-        try {
-            examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename + id.toString(), testFileType);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
+        return false;
     }
 
 }

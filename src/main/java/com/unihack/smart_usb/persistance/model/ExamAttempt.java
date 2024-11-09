@@ -48,13 +48,11 @@ public class ExamAttempt {
     public String toString() {
         return "ExamAttempt{" +
                 "id=" + id +
-                ", student=" + student +
-                ", exam=" + exam +
                 ", grade=" + grade +
                 ", plagiarismPercent=" + plagiarismPercent +
                 ", isValid=" + isValid +
+                ", submittedFileName='" + submittedFileName + '\'' +
                 ", macAddress='" + macAddress + '\'' +
-                ", screenshots=" + examAttemptDetails +
                 '}';
     }
 }
