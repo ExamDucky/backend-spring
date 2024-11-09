@@ -170,11 +170,4 @@ public class ExamFacade {
         return true;
     }
 
-    /*
-    * var testFiles = testBlobStorageClient.getTestFiles(testId);
-        return TestDTO.builder()
-                .groupOneTestFileUri(testFiles.getGroupOneTestFileNameUri())
-                .groupTwoTestFileUri(testFiles.getGroupTwoTestFileNameUri())
-                .blacklistProcessesFileName(testFiles.getBlacklistProcessesFileNameUri())
-                .build();*/
 }
