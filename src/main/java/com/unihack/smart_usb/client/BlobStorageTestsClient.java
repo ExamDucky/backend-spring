@@ -81,13 +81,13 @@ public class BlobStorageTestsClient {
 
         List<TaggedBlobItem> taggedBlobItems = new ArrayList<>();
 
-        for(var item : taggedBlobItemsGroupOne){
+        for (var item : taggedBlobItemsGroupOne) {
             taggedBlobItems.add(item);
         }
-        for(var item : taggedBlobItemsGroupTwo){
+        for (var item : taggedBlobItemsGroupTwo) {
             taggedBlobItems.add(item);
         }
-        for(var item : taggedBlobItemsGroupProcessBlacklist){
+        for (var item : taggedBlobItemsGroupProcessBlacklist) {
             taggedBlobItems.add(item);
         }
 
@@ -141,6 +141,35 @@ public class BlobStorageTestsClient {
         log.info("Successfully test .zip file " + filename + " with tags " + tags);
     }
 
+    public void createExamSubmission(Long studentId, Long examAttemptId, MultipartFile testFile, String filename, TestFileType testFileType) throws IOException {
+        BlobAsyncClient blobAsyncClient = this.blobContainerAsyncClient.getBlobAsyncClient(filename);
+
+        Map<String, String> tags = new HashMap<String, String>();
+        tags.put("examAttemptId", examAttemptId.toString());
+        tags.put("studentId", studentId.toString());
+        tags.put("testFileType", testFileType.name());
+        tags.put("created", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+        tags.put("updated", ZonedDateTime.now(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")));
+
+        long blockSize = 512L * 1024L; //512KB
+        ParallelTransferOptions parallelTransferOptions = new ParallelTransferOptions()
+                .setBlockSizeLong(blockSize)
+                .setMaxConcurrency(5);
+        BlobHttpHeaders headers = new BlobHttpHeaders();
+        headers.setContentType("application/zip");
+
+
+        Flux<ByteBuffer> fileFlux = Flux.just(ByteBuffer.wrap(testFile.getBytes()));
+
+        BlobParallelUploadOptions options = new BlobParallelUploadOptions(fileFlux)
+                .setTags(tags)
+                .setParallelTransferOptions(parallelTransferOptions)
+                .setHeaders(headers);
+
+        Mono<Response<BlockBlobItem>> responseMono = blobAsyncClient.uploadWithResponse(options);
+        Response<BlockBlobItem> response = responseMono.block();
+        log.info("Successfully test .zip file " + filename + " with tags " + tags);
+    }
 
     private String createImageUri(String containerUrl, String imageName, String sasToken) {
         return containerUrl + "/" + imageName + "?" + sasToken;

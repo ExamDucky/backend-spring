@@ -1,20 +1,23 @@
 package com.unihack.smart_usb.facade;
 
+import com.unihack.smart_usb.api.dto.ExamAttemptDTO;
 import com.unihack.smart_usb.api.dto.ExamDTO;
 import com.unihack.smart_usb.api.dto.TestDTO;
+import com.unihack.smart_usb.client.BlobStorageTestsClient;
+import com.unihack.smart_usb.client.models.TestFileType;
 import com.unihack.smart_usb.exception.auth.EntityDoesNotExistException;
 import com.unihack.smart_usb.exception.auth.UserDoesNotOwnEntityException;
-import com.unihack.smart_usb.persistance.model.Exam;
-import com.unihack.smart_usb.persistance.model.Professor;
-import com.unihack.smart_usb.persistance.model.Test;
-import com.unihack.smart_usb.service.implementations.ExamService;
-import com.unihack.smart_usb.service.implementations.ProfessorService;
-import com.unihack.smart_usb.service.implementations.TestService;
+import com.unihack.smart_usb.persistance.model.*;
+import com.unihack.smart_usb.service.implementations.*;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.ZonedDateTime;
 import java.util.Optional;
+
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 @Service
 @RequiredArgsConstructor
@@ -22,8 +25,12 @@ public class ExamFacade {
 
     private final TestService testService;
     private final ProfessorService professorService;
-
+    private final StudentService studentService;
     private final ExamService examService;
+    private final ExamAttemptService examAttemptService;
+
+    @Resource
+    private BlobStorageTestsClient examBlobStorageClient;
 
     public ExamDTO createExam(ExamDTO examDTO, Long professorId) {
         Optional<Professor> professorOptional = professorService.getProfessorById(professorId);
@@ -95,4 +102,79 @@ public class ExamFacade {
                 .build();
 
     }
+
+    public ExamAttemptDTO createExamAttempt(Long examId, ExamAttemptDTO examAttemptDTO) {
+        Optional<Exam> examOptional = examService.getExamById(examId);
+        if (!examOptional.isPresent()) {
+            throw new EntityDoesNotExistException("An exam with the given id does not exist.");
+        }
+
+        Exam exam = examOptional.get();
+
+        Optional<Student> studentOptional = studentService.getStudentByStudentIdentification(examAttemptDTO.getStudentId());
+        if (!studentOptional.isPresent()) {
+            throw new EntityDoesNotExistException("An student with the given id does not exist.");
+        }
+
+        Student student = studentOptional.get();
+
+        ExamAttempt examAttempt = ExamAttempt.builder()
+                .student(student)
+                .macAddress(examAttemptDTO.getMacAddress())
+                .exam(exam)
+                .build();
+
+        ExamAttempt savedExamAttempt = examAttemptService.saveExamAttempt(examAttempt);
+        return ExamAttemptDTO.builder()
+                .id(savedExamAttempt.getId())
+                .examId(exam.getId())
+                .studentId(student.getStudentId())
+                .macAddress(savedExamAttempt.getMacAddress())
+                .build();
+    }
+
+    public Boolean submitExam(Long examId, Long examAttemptId, MultipartFile file, String filename, String studentIdentification, TestFileType testFileType) {
+        Optional<Exam> examOptional = examService.getExamById(examId);
+        if (!examOptional.isPresent()) {
+            throw new EntityDoesNotExistException("An exam with the given id does not exist.");
+        }
+
+        Exam exam = examOptional.get();
+
+        Optional<Student> studentOptional = studentService.getStudentByStudentIdentification(studentIdentification);
+        if (!studentOptional.isPresent()) {
+            throw new EntityDoesNotExistException("An student with the given id does not exist.");
+        }
+
+        Student student = studentOptional.get();
+
+        ExamAttempt examAttempt = new ExamAttempt();
+
+        if (examAttemptId != null) {
+            Optional<ExamAttempt> examAttemptOptional = examAttemptService.getExamAttemptById(examAttemptId);
+            if (!examAttemptOptional.isPresent()) {
+                examAttempt = examAttemptOptional.get();
+            }
+        } else {
+            Optional<ExamAttempt> examAttemptOptional2 = examAttemptService.getExamAttemptByExamIdAndStudentId(examId, student.getId());
+            if (!examAttemptOptional2.isPresent()) {
+                examAttempt = examAttemptOptional2.get();
+            }
+        }
+
+        try {
+            examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename + id.toString(), testFileType);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
+    /*
+    * var testFiles = testBlobStorageClient.getTestFiles(testId);
+        return TestDTO.builder()
+                .groupOneTestFileUri(testFiles.getGroupOneTestFileNameUri())
+                .groupTwoTestFileUri(testFiles.getGroupTwoTestFileNameUri())
+                .blacklistProcessesFileName(testFiles.getBlacklistProcessesFileNameUri())
+                .build();*/
 }

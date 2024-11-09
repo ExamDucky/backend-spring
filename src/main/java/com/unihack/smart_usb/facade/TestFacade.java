@@ -27,8 +27,8 @@ public class TestFacade {
     @Resource
     private BlobStorageTestsClient testBlobStorageClient;
 
-
-    public TestDTO getTestFiles(Long testId){
+    //TODO Uraditi validaciju
+    public TestDTO getTestFiles(Long testId) {
         var testFiles = testBlobStorageClient.getTestFiles(testId);
         return TestDTO.builder()
                 .groupOneTestFileUri(testFiles.getGroupOneTestFileNameUri())
@@ -159,57 +159,12 @@ public class TestFacade {
             throw new EntityDoesNotExistException("File is empty.");
         }
 
-        try{
+        try {
             testBlobStorageClient.uploadTestFile(id, filename + id.toString(), file, testFileType);
-        } catch (Exception e){
+        } catch (Exception e) {
             return false;
         }
 
         return true;
-
-        // Ovo je visak ja bih rekao jer mi upload-ujemo fajl po fajl
-        // Neka vraca neki boolean samo ako je sve uspesno ne mora da salje objekat frontu
-
-//        List<String> fileContents = new ArrayList<>();
-//        int fileCount = 0;
-//
-//        try (InputStream inputStream = file.getInputStream();
-//             ZipInputStream zipInputStream = new ZipInputStream(inputStream)) {
-//
-//            ZipEntry entry;
-//            while ((entry = zipInputStream.getNextEntry()) != null) {
-//                fileCount++;
-//
-//                if (!entry.isDirectory()) {
-//                    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-//                    byte[] buffer = new byte[1024];
-//                    int len;
-//                    while ((len = zipInputStream.read(buffer)) > 0) {
-//                        byteArrayOutputStream.write(buffer, 0, len);
-//                    }
-//                    fileContents.add("File Name: " + entry.getName() + "\nContent:\n"
-//                            + new String(byteArrayOutputStream.toByteArray()));
-//                }
-//                zipInputStream.closeEntry();
-//            }
-//            fileContents.forEach(System.out::println);
-//
-//            System.out.println("All 3 files processed successfully.\nContents:\n" + String.join("\n\n", fileContents));
-//
-//
-//            return TestDTO.builder()
-//                    .id(test.getId())
-//                    .duration(test.getDuration())
-//                    .title(test.getTitle())
-//                    .groupOneTestFileName(test.getGroupOneTestFileName())
-//                    .groupTwoTestFileName(test.getGroupTwoTestFileName())
-//                    .blacklistProcessesFileName(test.getBlacklistProcessesFileName())
-//                    .description(test.getDescription())
-//                    .professorId(professor.getId())
-//                    .build();
-//
-//        } catch (IOException e) {
-//            throw new EntityDoesNotExistException("Could not process zip file.");
-//        }
     }
 }

@@ -1,7 +1,9 @@
 package com.unihack.smart_usb.api.controller;
 
+import com.unihack.smart_usb.api.dto.ExamAttemptDTO;
 import com.unihack.smart_usb.api.dto.ExamDTO;
 import com.unihack.smart_usb.api.dto.TestDTO;
+import com.unihack.smart_usb.client.models.TestFileType;
 import com.unihack.smart_usb.facade.ExamFacade;
 import com.unihack.smart_usb.persistance.model.Professor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -38,5 +41,27 @@ public class ExamController {
         Professor professor = (Professor) authentication.getPrincipal();
         log.info("Ending exam for professor with id: " + professor.getId());
         return ResponseEntity.ok(examFacade.endExam(id, professor.getId()));
+    }
+
+    @Operation(summary = "Create exam attempt", description = "Method for creating exam attempt by student's usb")
+    @PostMapping("/{id}/exam-attempt/create")
+    public ResponseEntity<ExamAttemptDTO> createExamAttempt(Authentication authentication, @PathVariable @NotNull Long id, @RequestBody ExamAttemptDTO examAttemptDTO) {
+        Professor professor = (Professor) authentication.getPrincipal();
+        log.info("Creating exam attempt for exam with id: " + id);
+        return ResponseEntity.ok(examFacade.createExamAttempt(id, examAttemptDTO));
+    }
+
+    @Operation(summary = "Create exam attempt", description = "Method for creating exam attempt by student's usb")
+    @PutMapping("/{id}/exam-attempt/submit")
+    public ResponseEntity<Boolean> submitTest(Authentication authentication,
+                                              @PathVariable @NotNull Long id,
+                                              @RequestParam("file") MultipartFile file,
+                                              @NotNull @RequestParam("filename") String filename,
+                                              @RequestParam String studentIdentification,
+                                              @RequestParam Long examAttemptId,
+                                              @NotNull @RequestParam("testFileType") TestFileType testFileType) {
+        Professor professor = (Professor) authentication.getPrincipal();
+        log.info("Creating exam attempt for exam with id: " + id);
+        return ResponseEntity.ok(examFacade.submitExam(id, examAttemptId, file, filename, studentIdentification, testFileType));
     }
 }
