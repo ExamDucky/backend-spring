@@ -170,7 +170,6 @@ public class ExamFacade {
                                 .macAddress(examAttempt.getMacAddress())
                                 .studentId(examAttempt.getStudent().getStudentId())
                                 .plagiarismLevel(returnPlagiarismSeverity(plagiarismReportResponse))
-                                .isValid(returnIsValid(plagiarismReportResponse))
                                 .build();
                     } else {
                         throw new EntityDoesNotExistException("The student already submitted the test.");
@@ -197,7 +196,6 @@ public class ExamFacade {
                                 .macAddress(examAttempt.getMacAddress())
                                 .studentId(examAttempt.getStudent().getStudentId())
                                 .plagiarismLevel(returnPlagiarismSeverity(plagiarismReportResponse))
-                                .isValid(returnIsValid(plagiarismReportResponse))
                                 .build();
                     } else {
                         throw new EntityDoesNotExistException("The student already submitted the test.");
