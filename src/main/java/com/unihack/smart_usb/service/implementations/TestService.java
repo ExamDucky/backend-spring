@@ -37,6 +37,9 @@ public class TestService implements ITestService {
 
     @Override
     public List<Test> getTestByTitleQueryAndProfessorId(String titleQuery, Long professorId) {
+        if(titleQuery==null || titleQuery.equals("")){
+            return repository.findByProfessor(professorId);
+        }
         return repository.findByTitleQueryAndProfessorId(titleQuery, professorId);
     }
 

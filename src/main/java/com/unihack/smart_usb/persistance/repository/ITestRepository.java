@@ -21,4 +21,6 @@ public interface ITestRepository extends JpaRepository<Test, Long> {
     @Query(value = "SELECT t FROM Test t WHERE t.title LIKE ?1%", nativeQuery = false)
     List<Test> findByTitleQuery(String title);
 
+    @Query(value = "SELECT t FROM Test t WHERE t.professor.id=?1", nativeQuery = false)
+    List<Test> findByProfessor(Long professorId);
 }
