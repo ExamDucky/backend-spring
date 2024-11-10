@@ -55,7 +55,7 @@ public class ExamController {
 
     @Operation(summary = "Create exam attempt", description = "Method for creating exam attempt by student's usb")
     @PutMapping(value = "/{id}/exam-attempt/submit", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Boolean> submitTest(Authentication authentication,
+    public ResponseEntity<ExamAttemptDTO> submitTest(Authentication authentication,
                                               @PathVariable @NotNull Long id,
                                               @RequestParam("file") MultipartFile file,
                                               @NotNull @RequestParam("filename") String filename,

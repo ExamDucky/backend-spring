@@ -5,6 +5,8 @@ import com.unihack.smart_usb.api.dto.ExamDTO;
 import com.unihack.smart_usb.api.dto.TestDTO;
 import com.unihack.smart_usb.client.AIClient;
 import com.unihack.smart_usb.client.BlobStorageClient;
+import com.unihack.smart_usb.client.models.PlagiarismLevel;
+import com.unihack.smart_usb.client.models.PlagiarismReportResponse;
 import com.unihack.smart_usb.client.models.TestFileType;
 import com.unihack.smart_usb.client.models.UploadSubmissionResponse;
 import com.unihack.smart_usb.exception.auth.EntityDoesNotExistException;
@@ -116,7 +118,7 @@ public class ExamFacade {
 
         Optional<Student> studentOptional = studentService.getStudentByStudentIdentification(examAttemptDTO.getStudentId());
         if (!studentOptional.isPresent()) {
-            throw new EntityDoesNotExistException("An student with the given id does not exist.");
+            throw new EntityDoesNotExistException("A student with the given id does not exist.");
         }
 
         Student student = studentOptional.get();
@@ -136,7 +138,7 @@ public class ExamFacade {
                 .build();
     }
 
-    public Boolean submitExam(Long examId, Long examAttemptId, MultipartFile file, String filename, String studentIdentification, TestFileType testFileType) {
+    public ExamAttemptDTO submitExam(Long examId, Long examAttemptId, MultipartFile file, String filename, String studentIdentification, TestFileType testFileType) {
         Optional<Exam> examOptional = examService.getExamById(examId);
         if (!examOptional.isPresent()) {
             throw new EntityDoesNotExistException("An exam with the given id does not exist.");
@@ -158,17 +160,24 @@ public class ExamFacade {
                 try {
                     if (examAttempt.getSubmittedFileName() == null) {
                         examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename + examAttemptId.toString(), testFileType);
-                        UploadSubmissionResponse uploadSubmissionResponse = aiClient.uploadFileToAi(file);
+                        UploadSubmissionResponse uploadSubmissionResponse = aiClient.uploadFileToAi(file, student.getStudentId());
                         examAttempt.setSubmissionId(uploadSubmissionResponse.getSubmissionId());
                         examAttempt.setSubmittedFileName(filename);
                         examAttemptService.updateExamAttempt(examAttempt);
-                        return true;
+                        PlagiarismReportResponse plagiarismReportResponse = aiClient.fetchPlagiarismReport(uploadSubmissionResponse.getSubmissionId());
+                        return ExamAttemptDTO.builder()
+                                .id(examAttempt.getId())
+                                .macAddress(examAttempt.getMacAddress())
+                                .studentId(examAttempt.getStudent().getStudentId())
+                                .plagiarismLevel(returnPlagiarismSeverity(plagiarismReportResponse))
+                                .isValid(returnIsValid(plagiarismReportResponse))
+                                .build();
                     } else {
                         throw new EntityDoesNotExistException("The student already submitted the test.");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return false;
+                    return null;
                 }
             }
 
@@ -179,21 +188,44 @@ public class ExamFacade {
                 try {
                     if (examAttempt.getSubmittedFileName() == null) {
                         examBlobStorageClient.createExamSubmission(student.getId(), examAttempt.getId(), file, filename, testFileType);
-                        UploadSubmissionResponse uploadSubmissionResponse = aiClient.uploadFileToAi(file);
+                        UploadSubmissionResponse uploadSubmissionResponse = aiClient.uploadFileToAi(file, student.getStudentId());
                         examAttempt.setSubmissionId(uploadSubmissionResponse.getSubmissionId());
                         examAttemptService.updateExamAttempt(examAttempt);
-                        return true;
+                        PlagiarismReportResponse plagiarismReportResponse = aiClient.fetchPlagiarismReport(uploadSubmissionResponse.getSubmissionId());
+                        return ExamAttemptDTO.builder()
+                                .id(examAttempt.getId())
+                                .macAddress(examAttempt.getMacAddress())
+                                .studentId(examAttempt.getStudent().getStudentId())
+                                .plagiarismLevel(returnPlagiarismSeverity(plagiarismReportResponse))
+                                .isValid(returnIsValid(plagiarismReportResponse))
+                                .build();
                     } else {
                         throw new EntityDoesNotExistException("The student already submitted the test.");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                    return false;
+                    return null;
                 }
             }
         }
 
-        return false;
+        return null;
+    }
+
+    private boolean returnIsValid(PlagiarismReportResponse plagiarismReportResponse) {
+        double llm = plagiarismReportResponse.getSimilarityDistribution().getLlm().getAverage();
+        if (llm >= 99.97) return false;
+        return true;
+    }
+
+    private PlagiarismLevel returnPlagiarismSeverity(PlagiarismReportResponse plagiarismReportResponse) {
+        double llm = plagiarismReportResponse.getSimilarityDistribution().getLlm().getAverage();
+
+        if (llm < 99.92) return PlagiarismLevel.LOW;
+        if (llm >= 99.92 && llm < 99.97) return PlagiarismLevel.MEDIUM;
+        if (llm >= 99.97) return PlagiarismLevel.HIGH;
+
+        return PlagiarismLevel.HIGH;
     }
 
 }

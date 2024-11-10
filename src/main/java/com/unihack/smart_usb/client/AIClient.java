@@ -2,6 +2,7 @@ package com.unihack.smart_usb.client;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.unihack.smart_usb.client.models.PlagiarismReportResponse;
 import com.unihack.smart_usb.client.models.UploadSubmissionResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,6 +22,7 @@ import reactor.netty.http.client.HttpClient;
 @Slf4j
 public class AIClient {
     private static final String SUBMIT_FILE_URI = "/upload-and-check/";
+    private static final String GET_REPORT = "/report/";
     private final WebClient webClient;
 
     public AIClient(WebClient.Builder builder,
@@ -34,7 +36,7 @@ public class AIClient {
     }
 
 
-    public UploadSubmissionResponse uploadFileToAi(MultipartFile submissionFile) {
+    public UploadSubmissionResponse uploadFileToAi(MultipartFile submissionFile, String studentIdentification) {
         log.info("Sending submission file.");
         MultiValueMap<String, Object> formData = new LinkedMultiValueMap<>();
         formData.add("test_file", submissionFile.getResource());
@@ -42,7 +44,7 @@ public class AIClient {
         return webClient.post()
                 .uri(uriBuilder -> uriBuilder
                         .path(SUBMIT_FILE_URI)
-                        .queryParam("name", "program.c") // Adding the query parameter
+                        .queryParam("name", studentIdentification) // Adding the query parameter
                         .build())
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .accept(MediaType.APPLICATION_JSON)
@@ -79,4 +81,16 @@ public class AIClient {
                 .doOnError(Throwable::printStackTrace) // Print any error stack trace
                 .block();
     }
+
+    public PlagiarismReportResponse fetchPlagiarismReport(String submissionId) {
+        return webClient.get()
+                .uri(uriBuilder -> uriBuilder.path(GET_REPORT+submissionId)
+                        .queryParam("format", "json")
+                        .queryParam("inputs", "summary")
+                        .build())
+                .retrieve()
+                .bodyToMono(PlagiarismReportResponse.class)
+                .block();
+    }
+
 }

@@ -1,5 +1,6 @@
 package com.unihack.smart_usb.api.dto;
 
+import com.unihack.smart_usb.client.models.PlagiarismLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,7 +16,7 @@ public class ExamAttemptDTO {
     private String studentId;
     private Long examId;
     private int grade;
-    private double plagiarismPercent;
+    private PlagiarismLevel plagiarismLevel;
     private boolean isValid;
     private String macAddress;
 

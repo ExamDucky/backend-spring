@@ -30,7 +30,8 @@ public class ExamAttempt {
     @Column(nullable = false)
     private int grade;
 
-    private double plagiarismPercent;
+    @Column(name = "plagiarism_percent")
+    private double plagiarismLevel;
 
     private boolean isValid;
 
@@ -52,7 +53,7 @@ public class ExamAttempt {
         return "ExamAttempt{" +
                 "id=" + id +
                 ", grade=" + grade +
-                ", plagiarismPercent=" + plagiarismPercent +
+                ", plagiarismLevel=" + plagiarismLevel +
                 ", isValid=" + isValid +
                 ", submittedFileName='" + submittedFileName + '\'' +
                 ", macAddress='" + macAddress + '\'' +
